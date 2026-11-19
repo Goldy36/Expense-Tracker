@@ -8,10 +8,10 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  WalletCards,
   ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import BrandLogo from '../ui/BrandLogo';
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -35,9 +35,7 @@ const Sidebar = () => {
     <aside className="w-64 bg-white border-r border-slate-200/80 flex flex-col h-screen fixed left-0 top-0 z-30 select-none shadow-xs">
       {/* Brand Logo */}
       <div className="p-6 border-b border-slate-100 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
-          <WalletCards className="w-5.5 h-5.5" />
-        </div>
+        <BrandLogo className="w-10 h-10 rounded-xl shadow-md shadow-orange-200" />
         <div>
           <h1 className="text-base font-bold text-slate-900 tracking-tight leading-tight">FinPulse</h1>
           <span className="text-[11px] font-medium text-slate-400">Expense Tracker</span>

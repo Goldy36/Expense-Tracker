@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/ui/Button';
+import BrandLogo from '../components/ui/BrandLogo';
 import Input from '../components/ui/Input';
-import { WalletCards, Mail, Lock, ArrowRight } from 'lucide-react';
+import ThemeToggle from '../components/ui/ThemeToggle';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -35,12 +37,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="relative min-h-screen bg-slate-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <ThemeToggle />
+      </div>
       <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/80 shadow-xl p-8 space-y-6">
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200 mb-1">
-            <WalletCards className="w-6 h-6" />
-          </div>
+          <BrandLogo className="w-12 h-12 rounded-2xl shadow-lg shadow-orange-200 mb-1" />
           <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Welcome back</h2>
           <p className="text-xs text-slate-500">Sign in to access your financial dashboard</p>
         </div>

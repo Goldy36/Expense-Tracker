@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Plus, Calendar, Sparkles, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
+import ThemeToggle from '../ui/ThemeToggle';
 
 const MOTIVATIONAL_QUOTES = [
   "A budget is telling your money where to go instead of wondering where it went.",
@@ -21,13 +22,18 @@ const MOTIVATIONAL_QUOTES = [
   "Your financial habits today shape your freedom tomorrow."
 ];
 
+const getMonthValue = (date) => (
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+);
+
 const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState('August 2026');
+  const [selectedMonth, setSelectedMonth] = useState(() => getMonthValue(new Date()));
+  const currentMonthRef = useRef(getMonthValue(new Date()));
 
   // Random motivational quote initialized on load
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length));
@@ -39,6 +45,14 @@ const Header = () => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000); // update every minute
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const currentMonth = getMonthValue(currentTime);
+    if (currentMonthRef.current !== currentMonth) {
+      currentMonthRef.current = currentMonth;
+      setSelectedMonth(currentMonth);
+    }
+  }, [currentTime]);
 
   const shuffleQuote = () => {
     setQuoteIndex((prev) => (prev + 1) % MOTIVATIONAL_QUOTES.length);
@@ -61,6 +75,13 @@ const Header = () => {
 
   const { text: greetingText, emoji: greetingEmoji } = getGreetingDetails();
   const firstName = user?.name ? user.name.split(' ')[0] : 'User';
+  const monthOptions = Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(currentTime.getFullYear(), currentTime.getMonth() - index, 1);
+    return {
+      value: getMonthValue(date),
+      label: date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }),
+    };
+  });
 
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-20 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -88,6 +109,7 @@ const Header = () => {
 
       {/* Header Controls */}
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         <div className="hidden sm:flex items-center gap-2 bg-slate-100/70 border border-slate-200/80 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-700">
           <Calendar className="w-3.5 h-3.5 text-slate-500" />
           <select
@@ -96,9 +118,9 @@ const Header = () => {
             aria-label="Select month"
             className="bg-transparent border-none outline-none font-medium text-slate-700 cursor-pointer pr-1"
           >
-            <option value="August 2026">August 2026</option>
-            <option value="July 2026">July 2026</option>
-            <option value="June 2026">June 2026</option>
+            {monthOptions.map((month) => (
+              <option key={month.value} value={month.value}>{month.label}</option>
+            ))}
           </select>
         </div>
 
@@ -126,7 +148,7 @@ const Header = () => {
             variant="primary"
             size="md"
             icon={Plus}
-            onClick={() => navigate('/add-expense')}
+            onClick={() => navigate(`/add-expense?month=${selectedMonth}`)}
           >
             Add Expense
           </Button>

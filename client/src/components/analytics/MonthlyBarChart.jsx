@@ -60,17 +60,17 @@ const MonthlyBarChart = ({ transactions = [], currency = '₹' }) => {
       <div className="h-64 w-full pt-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={monthsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
             <XAxis
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94A3B8', fontSize: 12 }}
+              tick={{ fill: 'var(--chart-label)', fontSize: 12 }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94A3B8', fontSize: 12 }}
+              tick={{ fill: 'var(--chart-label)', fontSize: 12 }}
               tickFormatter={(v) => `${currency}${v >= 1000 ? `${v / 1000}k` : v}`}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -78,7 +78,7 @@ const MonthlyBarChart = ({ transactions = [], currency = '₹' }) => {
               {monthsData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={entry.isCurrent ? '#6366F1' : '#CBD5E1'}
+                  fill={entry.isCurrent ? '#6366F1' : 'var(--chart-bar-neutral)'}
                 />
               ))}
             </Bar>

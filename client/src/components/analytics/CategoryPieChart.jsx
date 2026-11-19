@@ -77,7 +77,7 @@ const CategoryPieChart = ({ transactions = [], currency = '₹' }) => {
                   dataKey="value"
                 >
                   {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#FFFFFF" strokeWidth={2} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="var(--chart-surface-border)" strokeWidth={2} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />

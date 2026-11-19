@@ -3,7 +3,6 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Menu,
   X,
-  WalletCards,
   LayoutDashboard,
   ReceiptText,
   PlusCircle,
@@ -15,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
+import BrandLogo from '../ui/BrandLogo';
+import ThemeToggle from '../ui/ThemeToggle';
 
 const MobileNav = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,14 +41,13 @@ const MobileNav = () => {
     <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
       {/* Brand Logo */}
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-          <WalletCards className="w-4 h-4" />
-        </div>
+        <BrandLogo className="w-8 h-8 rounded-lg" />
         <span className="font-bold text-slate-900 text-base">FinPulse</span>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <Button
           variant="primary"
           size="sm"

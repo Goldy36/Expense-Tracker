@@ -153,17 +153,17 @@ const IncomeExpenseChart = ({ transactions = [], currency = '₹' }) => {
                 <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
             <XAxis
               dataKey="name"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94A3B8', fontSize: 12 }}
+              tick={{ fill: 'var(--chart-label)', fontSize: 12 }}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94A3B8', fontSize: 12 }}
+              tick={{ fill: 'var(--chart-label)', fontSize: 12 }}
               tickFormatter={(v) => `${currency}${v >= 1000 ? `${v / 1000}k` : v}`}
             />
             <Tooltip content={<CustomTooltip />} />

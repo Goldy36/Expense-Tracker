@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useExpense } from '../context/ExpenseContext';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
@@ -9,9 +9,30 @@ import ReceiptUploader from '../components/ui/ReceiptUploader';
 import { CATEGORIES, PAYMENT_METHODS } from '../data/categories';
 import { PlusCircle, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
+const formatDateForInput = (date) => (
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+);
+
+const getInitialTransactionDate = (month) => {
+  const today = new Date();
+  if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    return formatDateForInput(today);
+  }
+
+  const [year, monthNumber] = month.split('-').map(Number);
+  const date = new Date(year, monthNumber - 1, 1);
+  const day = month === formatDateForInput(today).slice(0, 7) ? today.getDate() : 1;
+  const lastDay = new Date(year, monthNumber, 0).getDate();
+  date.setDate(Math.min(day, lastDay));
+
+  return formatDateForInput(date);
+};
+
 const AddExpense = () => {
   const { addTransaction, settings } = useExpense();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedMonth = searchParams.get('month');
 
   const currency = settings.currency || '₹';
 
@@ -19,7 +40,7 @@ const AddExpense = () => {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Food');
-  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(() => getInitialTransactionDate(selectedMonth));
   const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');

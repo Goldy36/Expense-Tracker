@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="finpulse-gradient" x1="6" y1="7" x2="42" y2="43" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F97316"/>
+      <stop offset="1" stop-color="#FBBF24"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#finpulse-gradient)"/>
+  <rect x="10.5" y="12" width="27" height="24" rx="5" stroke="#fff" stroke-width="2.5"/>
+  <path d="M11 19.5h26M14 27h5l3-5 4 10 3-5h5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
