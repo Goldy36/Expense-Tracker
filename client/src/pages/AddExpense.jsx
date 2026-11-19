@@ -33,13 +33,14 @@ const AddExpense = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const selectedMonth = searchParams.get('month');
+  const initialType = searchParams.get('type') === 'income' ? 'income' : 'expense';
 
   const currency = settings.currency || '₹';
 
-  const [type, setType] = useState('expense'); // 'expense' | 'income'
+  const [type, setType] = useState(initialType); // 'expense' | 'income'
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('Food');
+  const [category, setCategory] = useState(initialType === 'income' ? 'Income' : 'Food');
   const [date, setDate] = useState(() => getInitialTransactionDate(selectedMonth));
   const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [description, setDescription] = useState('');

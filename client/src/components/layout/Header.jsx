@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Plus, Calendar, Sparkles, RefreshCw } from 'lucide-react';
+import { Bell, Plus, TrendingUp, Calendar, Sparkles, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
@@ -132,14 +132,24 @@ const Header = () => {
         </div>
 
         {location.pathname !== '/add-expense' && (
-          <Button
-            variant="primary"
-            size="md"
-            icon={Plus}
-            onClick={() => navigate(`/add-expense?month=${selectedMonth}`)}
-          >
-            Add Expense
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="success"
+              size="md"
+              icon={TrendingUp}
+              onClick={() => navigate(`/add-expense?type=income&month=${selectedMonth}`)}
+            >
+              Add Income
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              icon={Plus}
+              onClick={() => navigate(`/add-expense?month=${selectedMonth}`)}
+            >
+              Add Expense
+            </Button>
+          </div>
         )}
       </div>
     </header>
