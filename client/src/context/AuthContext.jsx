@@ -96,6 +96,9 @@ export const AuthProvider = ({ children }) => {
       if (error.response?.data?.message) {
         throw error;
       }
+      if (!import.meta.env.DEV) {
+        throw new Error('Unable to reach the account service. Please try again later.');
+      }
       console.warn('[AuthContext] API connection offline. Falling back to local auth mode.');
       const localUser = {
         _id: `usr_${Date.now()}`,
@@ -121,6 +124,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       if (error.response?.data?.message) {
         throw error;
+      }
+      if (!import.meta.env.DEV) {
+        throw new Error('Unable to reach the account service. Please try again later.');
       }
       console.warn('[AuthContext] API connection offline. Falling back to local account creation.');
       const localUser = {
