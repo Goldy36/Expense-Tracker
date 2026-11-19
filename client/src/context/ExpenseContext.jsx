@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { transactionService } from '../services/transactionService';
 import { budgetService } from '../services/budgetService';
 import { userService } from '../services/userService';
@@ -17,6 +17,17 @@ const EMPTY_SETTINGS = {
     monthlyReport: false,
   },
 };
+
+const cacheKey = (user, kind) => `expenseflow_${kind}_${user?._id || user?.id || user?.email || 'default'}`;
+const readCache = (key, fallback) => {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+const readLegacyCache = (key, fallback) => readCache(key, fallback);
 
 const normalizeSettingsFromProfile = (profile) => ({
   currency: profile?.currency || profile?.preferences?.currency || '₹',
@@ -58,6 +69,34 @@ export const ExpenseProvider = ({ children }) => {
   const [settings, setSettings] = useState(EMPTY_SETTINGS);
   const [toasts, setToasts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const hydratedUserKey = useRef(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setTransactions([]);
+      setBudgets([]);
+      setSettings(EMPTY_SETTINGS);
+      return;
+    }
+    const id = user?._id || user?.id || user?.email || 'default';
+    setTransactions(readCache(cacheKey(user, 'transactions'), readLegacyCache('expense_tracker_transactions', [])));
+    setBudgets(readCache(cacheKey(user, 'budgets'), readLegacyCache('expense_tracker_budgets', [])));
+    setSettings({ ...EMPTY_SETTINGS, ...readCache(cacheKey(user, 'settings'), readLegacyCache('expense_tracker_settings', {})) });
+    hydratedUserKey.current = id;
+  }, [isAuthenticated, user?._id, user?.id, user?.email]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    const id = user?._id || user?.id || user?.email || 'default';
+    if (hydratedUserKey.current !== id) return;
+    try {
+      localStorage.setItem(cacheKey(user, 'transactions'), JSON.stringify(transactions));
+      localStorage.setItem(cacheKey(user, 'budgets'), JSON.stringify(budgets));
+      localStorage.setItem(cacheKey(user, 'settings'), JSON.stringify(settings));
+    } catch (error) {
+      console.warn('[ExpenseContext] Unable to save local data cache', error);
+    }
+  }, [isAuthenticated, user?._id, user?.id, user?.email, transactions, budgets, settings]);
 
   const addToast = (message, type = 'success') => {
     const id = Date.now() + Math.random().toString();
@@ -89,14 +128,14 @@ export const ExpenseProvider = ({ children }) => {
         userService.getProfile(),
       ]);
 
-      if (transactionsResponse?.data) {
-        setTransactions(transactionsResponse.data.map(mapTransaction));
+      if (Array.isArray(transactionsResponse?.data?.data || transactionsResponse?.data)) {
+        setTransactions((transactionsResponse.data.data || transactionsResponse.data).map(mapTransaction));
       }
-      if (budgetsResponse?.data) {
-        setBudgets(budgetsResponse.data.map(mapBudget));
+      if (Array.isArray(budgetsResponse?.data?.data || budgetsResponse?.data)) {
+        setBudgets((budgetsResponse.data.data || budgetsResponse.data).map(mapBudget));
       }
       if (profileResponse?.data) {
-        setSettings(normalizeSettingsFromProfile(profileResponse.data));
+        setSettings(normalizeSettingsFromProfile(profileResponse.data.data || profileResponse.data));
       }
     } catch (error) {
       console.warn('[ExpenseContext] API refresh encountered error, preserving local state');

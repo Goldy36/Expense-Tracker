@@ -7,13 +7,6 @@ const AuthContext = createContext();
 const TOKEN_KEY = 'expenseflow_token';
 const USER_KEY = 'expenseflow_user';
 const REMEMBER_KEY = 'expenseflow_remember_me';
-const LEGACY_KEYS = [
-  'expense_tracker_user',
-  'expense_tracker_transactions',
-  'expense_tracker_budgets',
-  'expense_tracker_settings',
-];
-
 const readUser = (storage) => {
   try {
     const raw = storage.getItem(USER_KEY);
@@ -36,10 +29,6 @@ export const AuthProvider = ({ children }) => {
   const [authStorage, setAuthStorage] = useState(initialStorage);
   const [user, setUser] = useState(() => (initialStorage ? readUser(initialStorage) : null));
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(initialStorage && initialStorage.getItem(TOKEN_KEY)));
-
-  useEffect(() => {
-    LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
-  }, []);
 
   useEffect(() => {
     const handleAuthCleared = () => {
