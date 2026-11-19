@@ -21,6 +21,8 @@ const Settings = () => {
     weeklySummary: false,
     monthlyReport: false,
   });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState('');
 
   React.useEffect(() => {
     if (settings?.currency) {
@@ -35,9 +37,18 @@ const Settings = () => {
     if (user?.email) setEmail(user.email);
   }, [user?.name, user?.email]);
 
-  const handleProfileSave = (e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    updateUserProfile({ name, email });
+    setProfileSaving(true);
+    setProfileMessage('');
+    try {
+      await updateUserProfile({ name: name.trim(), email: email.trim().toLowerCase() });
+      setProfileMessage('Profile saved successfully.');
+    } catch (error) {
+      setProfileMessage(error.response?.data?.message || 'Could not save profile. Please try again.');
+    } finally {
+      setProfileSaving(false);
+    }
   };
 
   const handlePreferencesSave = (e) => {
@@ -116,10 +127,11 @@ const Settings = () => {
                 required
               />
               <div className="flex justify-end pt-2">
-                <Button variant="primary" size="sm" type="submit">
-                  Save Profile
+                <Button variant="primary" size="sm" type="submit" loading={profileSaving} disabled={profileSaving}>
+                  {profileSaving ? 'Saving...' : 'Save Profile'}
                 </Button>
               </div>
+              {profileMessage && <p role="status" className="text-xs text-slate-600">{profileMessage}</p>}
             </form>
           </Card>
 

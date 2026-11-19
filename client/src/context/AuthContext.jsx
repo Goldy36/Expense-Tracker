@@ -144,8 +144,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUserProfile = async (profileData) => {
-    const response = await userService.updateProfile(profileData);
-    const updatedProfile = response.data?.data || response.data || profileData;
+    let updatedProfile;
+    try {
+      const response = await userService.updateProfile(profileData);
+      updatedProfile = response.data?.data || response.data || profileData;
+    } catch (error) {
+      // Keep the profile editable in the app's local/demo mode when the API is offline.
+      if (error.response) throw error;
+      updatedProfile = profileData;
+    }
 
     const currentStorage = authStorage || getAuthStorage() || sessionStorage;
     const currentToken = currentStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
