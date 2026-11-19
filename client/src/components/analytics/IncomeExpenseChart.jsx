@@ -10,84 +10,73 @@ import {
 } from 'recharts';
 import { formatCurrency } from '../../utils/formatters';
 
-const IncomeExpenseChart = ({ transactions = [], currency = '₹' }) => {
+const IncomeExpenseChart = ({ transactions = [], currency = '₹', selectedMonth }) => {
   const [timeframe, setTimeframe] = useState('30 Days');
 
   // Generate chart data based on transactions and timeframe
   const generateChartData = () => {
+    const monthValue = selectedMonth || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+    const [selectedYear, selectedMonthNumber] = monthValue.split('-').map(Number);
+    const selectedStart = new Date(selectedYear, selectedMonthNumber - 1, 1);
+    const selectedEnd = new Date(selectedYear, selectedMonthNumber, 0);
+    const now = new Date();
+    const isCurrentMonth = selectedYear === now.getFullYear() && selectedMonthNumber - 1 === now.getMonth();
+    const periodEnd = isCurrentMonth && now < selectedEnd ? now : selectedEnd;
+    const dateOnly = (value) => {
+      const [year, month, day] = String(value).slice(0, 10).split('-').map(Number);
+      return new Date(year, month - 1, day);
+    };
+    const sumFor = (items, type) => items
+      .filter((transaction) => transaction.type === type)
+      .reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
+
     if (timeframe === '7 Days') {
-      const days = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
-        const dayLabel = d.toLocaleDateString('en-IN', { weekday: 'short' });
-
-        const income = transactions
-          .filter(t => t.type === 'income' && t.date === dateStr)
-          .reduce((sum, t) => sum + Number(t.amount), 0);
-
-        const expense = transactions
-          .filter(t => t.type === 'expense' && t.date === dateStr)
-          .reduce((sum, t) => sum + Number(t.amount), 0);
-
-        days.push({ name: dayLabel, income, expense });
-      }
-      return days;
+      return Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(periodEnd);
+        date.setDate(date.getDate() - (6 - index));
+        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const dayTransactions = date >= selectedStart && date <= periodEnd
+          ? transactions.filter((transaction) => String(transaction.date).slice(0, 10) === dateKey)
+          : [];
+        return {
+          name: date.toLocaleDateString('en-IN', { weekday: 'short' }),
+          income: sumFor(dayTransactions, 'income'),
+          expense: sumFor(dayTransactions, 'expense'),
+        };
+      });
     }
 
     if (timeframe === '6 Months' || timeframe === '1 Year') {
       const monthCount = timeframe === '6 Months' ? 6 : 12;
-      const months = [];
-      const now = new Date();
-      for (let i = monthCount - 1; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const m = d.getMonth();
-        const y = d.getFullYear();
-        const label = d.toLocaleDateString('en-IN', { month: 'short' });
-
-        const income = transactions
-          .filter(t => {
-            const td = new Date(t.date);
-            return t.type === 'income' && td.getMonth() === m && td.getFullYear() === y;
-          })
-          .reduce((sum, t) => sum + Number(t.amount), 0);
-
-        const expense = transactions
-          .filter(t => {
-            const td = new Date(t.date);
-            return t.type === 'expense' && td.getMonth() === m && td.getFullYear() === y;
-          })
-          .reduce((sum, t) => sum + Number(t.amount), 0);
-
-        months.push({ name: label, income, expense });
-      }
-      return months;
+      return Array.from({ length: monthCount }, (_, index) => {
+        const date = new Date(selectedYear, selectedMonthNumber - monthCount + index, 1);
+        const monthTransactions = transactions.filter((transaction) => {
+          const transactionDate = dateOnly(transaction.date);
+          return transactionDate.getMonth() === date.getMonth() && transactionDate.getFullYear() === date.getFullYear();
+        });
+        return {
+          name: date.toLocaleDateString('en-IN', { month: 'short' }),
+          income: sumFor(monthTransactions, 'income'),
+          expense: sumFor(monthTransactions, 'expense'),
+        };
+      });
     }
 
-    // Default: 30 Days (grouped by week/periods or 4 7-day buckets)
     const buckets = [
       { name: 'Week 1', income: 0, expense: 0 },
       { name: 'Week 2', income: 0, expense: 0 },
       { name: 'Week 3', income: 0, expense: 0 },
       { name: 'Week 4', income: 0, expense: 0 },
     ];
-
-    transactions.forEach(t => {
-      const d = new Date(t.date);
-      const dayOfMonth = d.getDate();
-      let idx = 0;
-      if (dayOfMonth > 21) idx = 3;
-      else if (dayOfMonth > 14) idx = 2;
-      else if (dayOfMonth > 7) idx = 1;
-
-      if (t.type === 'income') buckets[idx].income += Number(t.amount);
-      else if (t.type === 'expense') buckets[idx].expense += Number(t.amount);
+    transactions.forEach((transaction) => {
+      const date = dateOnly(transaction.date);
+      if (Number.isNaN(date.getTime()) || date < selectedStart || date > periodEnd) return;
+      const index = Math.min(Math.floor((date.getDate() - 1) / 7), 3);
+      if (transaction.type === 'income') buckets[index].income += Number(transaction.amount || 0);
+      if (transaction.type === 'expense') buckets[index].expense += Number(transaction.amount || 0);
     });
-
     return buckets;
   };
-
   const data = generateChartData();
 
   const CustomTooltip = ({ active, payload, label }) => {

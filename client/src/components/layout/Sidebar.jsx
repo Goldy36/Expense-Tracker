@@ -32,7 +32,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200/80 flex flex-col h-screen fixed left-0 top-0 z-30 select-none shadow-xs">
+    <aside className="app-sidebar w-64 bg-white border-r border-slate-200/80 flex flex-col h-screen fixed left-0 top-0 z-30 select-none shadow-xs">
       {/* Brand Logo */}
       <div className="p-6 border-b border-slate-100 flex items-center gap-3">
         <BrandLogo className="w-10 h-10 rounded-xl shadow-md shadow-orange-200" />

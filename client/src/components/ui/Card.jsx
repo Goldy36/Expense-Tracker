@@ -13,7 +13,7 @@ const Card = ({
 }) => {
   return (
     <div
-      className={`bg-white rounded-2xl border border-slate-100 shadow-xs shadow-slate-200/50 transition-all duration-200 ${
+      className={`fin-card bg-white rounded-2xl border border-slate-100 shadow-xs shadow-slate-200/50 transition-all duration-200 ${
         hoverEffect ? 'hover:shadow-md hover:border-slate-200 hover:-translate-y-0.5' : ''
       } ${className}`}
       {...props}

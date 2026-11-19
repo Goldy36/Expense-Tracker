@@ -1,11 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="finpulse-gradient" x1="6" y1="7" x2="42" y2="43" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F97316"/>
-      <stop offset="1" stop-color="#FBBF24"/>
+    <linearGradient id="brand" x1="8" y1="5" x2="57" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FB923C"/>
+      <stop offset=".52" stop-color="#F97316"/>
+      <stop offset="1" stop-color="#E44718"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="17" y1="11" x2="45" y2="49" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
     </linearGradient>
   </defs>
-  <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#finpulse-gradient)"/>
-  <rect x="10.5" y="12" width="27" height="24" rx="5" stroke="#fff" stroke-width="2.5"/>
-  <path d="M11 19.5h26M14 27h5l3-5 4 10 3-5h5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="2" y="2" width="60" height="60" rx="19" fill="url(#brand)"/>
+  <path d="M21 3h22a19 19 0 0 1 19 19v7C48 30 37 25 29 18 23 13 18 8 16 3h5Z" fill="url(#shine)"/>
+  <rect x="13" y="17" width="38" height="31" rx="8" stroke="#fff" stroke-width="2.8"/>
+  <path d="M13.5 25h37" stroke="#fff" stroke-opacity=".85" stroke-width="2.8"/>
+  <path d="M19 38h6l4-7 5 12 5-8 3 3h4" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="44" cy="21" r="1.5" fill="#fff"/>
 </svg>

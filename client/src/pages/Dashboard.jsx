@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useExpense } from '../context/ExpenseContext';
 import { formatCurrency, calculatePercentageChange } from '../utils/formatters';
@@ -13,6 +13,7 @@ import ProgressBar from '../components/ui/ProgressBar';
 import Badge from '../components/ui/Badge';
 import EmptyState from '../components/ui/EmptyState';
 import { CATEGORIES } from '../data/categories';
+import { useSelectedMonth } from '../context/MonthContext';
 import {
   Wallet,
   ArrowUpRight,
@@ -26,7 +27,8 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const { transactions, budgets, stats, settings, deleteTransaction } = useExpense();
+  const { transactions, budgets, settings, deleteTransaction } = useExpense();
+  const { selectedMonth } = useSelectedMonth();
   const navigate = useNavigate();
 
   const [selectedTx, setSelectedTx] = useState(null);
@@ -34,14 +36,55 @@ const Dashboard = () => {
 
   const currency = settings.currency || '₹';
 
-  // Percentage calculations
-  const incomeChange = calculatePercentageChange(stats.totalIncome, stats.prevIncome);
-  const expenseChange = calculatePercentageChange(stats.totalExpenses, stats.prevExpenses);
-  const balanceChange = calculatePercentageChange(stats.balance, stats.prevBalance);
-  const savingsChange = calculatePercentageChange(stats.savings, stats.prevSavings);
+  const monthStats = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, 1);
+    const previousDate = new Date(year, month - 2, 1);
+    const inMonth = (transaction, date) => {
+      const dateText = String(transaction.date).slice(0, 10);
+      const parts = dateText.split('-').map(Number);
+      const transactionDate = parts.length === 3 && parts.every(Number.isFinite)
+        ? new Date(parts[0], parts[1] - 1, parts[2])
+        : new Date(transaction.date);
+      return !Number.isNaN(transactionDate.getTime())
+        && transactionDate.getMonth() === date.getMonth()
+        && transactionDate.getFullYear() === date.getFullYear();
+    };
+    const currentMonthTxs = transactions.filter((transaction) => inMonth(transaction, selectedDate));
+    const previousMonthTxs = transactions.filter((transaction) => inMonth(transaction, previousDate));
+    const total = (items, type) => items
+      .filter((transaction) => transaction.type === type)
+      .reduce((sum, transaction) => sum + Number(transaction.amount || 0), 0);
+    const totalIncome = total(currentMonthTxs, 'income');
+    const totalExpenses = total(currentMonthTxs, 'expense');
+    const prevIncome = total(previousMonthTxs, 'income');
+    const prevExpenses = total(previousMonthTxs, 'expense');
+    const balance = totalIncome - totalExpenses;
+    const prevBalance = prevIncome - prevExpenses;
+    return {
+      currentMonthTxs,
+      totalIncome,
+      totalExpenses,
+      balance,
+      savings: Math.max(balance, 0),
+      prevIncome,
+      prevExpenses,
+      prevBalance,
+      prevSavings: Math.max(prevBalance, 0),
+    };
+  }, [transactions, selectedMonth]);
+
+  const incomeChange = calculatePercentageChange(monthStats.totalIncome, monthStats.prevIncome);
+  const expenseChange = calculatePercentageChange(monthStats.totalExpenses, monthStats.prevExpenses);
+  const balanceChange = calculatePercentageChange(monthStats.balance, monthStats.prevBalance);
+  const savingsChange = calculatePercentageChange(monthStats.savings, monthStats.prevSavings);
 
   // Recent 5 transactions
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = monthStats.currentMonthTxs.slice(0, 5);
+  const selectedMonthLabel = new Date(`${selectedMonth}-02T12:00:00`).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  });
 
   const handleDeleteConfirm = () => {
     if (txToDelete) {
@@ -52,6 +95,13 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-600">Your finances</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+        </div>
+        <p className="text-sm font-medium text-slate-500">Showing activity for <span className="text-slate-800">{selectedMonthLabel}</span></p>
+      </div>
       {/* 4 Summary Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Total Balance */}
@@ -64,7 +114,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-3">
             <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              {formatCurrency(stats.balance, currency)}
+              {formatCurrency(monthStats.balance, currency)}
             </h3>
             <div className="flex items-center gap-1.5 mt-1 text-xs">
               <span className={`font-bold flex items-center gap-0.5 ${balanceChange.isIncrease ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -86,7 +136,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-3">
             <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              {formatCurrency(stats.totalIncome, currency)}
+              {formatCurrency(monthStats.totalIncome, currency)}
             </h3>
             <div className="flex items-center gap-1.5 mt-1 text-xs">
               <span className={`font-bold flex items-center gap-0.5 ${incomeChange.isIncrease ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -108,7 +158,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-3">
             <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              {formatCurrency(stats.totalExpenses, currency)}
+              {formatCurrency(monthStats.totalExpenses, currency)}
             </h3>
             <div className="flex items-center gap-1.5 mt-1 text-xs">
               <span className={`font-bold flex items-center gap-0.5 ${!expenseChange.isIncrease ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -130,7 +180,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-3">
             <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              {formatCurrency(stats.savings, currency)}
+              {formatCurrency(monthStats.savings, currency)}
             </h3>
             <div className="flex items-center gap-1.5 mt-1 text-xs">
               <span className={`font-bold flex items-center gap-0.5 ${savingsChange.isIncrease ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -146,10 +196,10 @@ const Dashboard = () => {
       {/* Main Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <IncomeExpenseChart transactions={transactions} currency={currency} />
+          <IncomeExpenseChart transactions={transactions} currency={currency} selectedMonth={selectedMonth} />
         </div>
         <div className="lg:col-span-1">
-          <CategoryPieChart transactions={transactions} currency={currency} />
+          <CategoryPieChart transactions={monthStats.currentMonthTxs} currency={currency} />
         </div>
       </div>
 
@@ -176,7 +226,7 @@ const Dashboard = () => {
           ) : (
             <div className="space-y-4">
               {budgets.slice(0, 4).map((bgt) => {
-                const spent = stats.currentMonthTxs
+                const spent = monthStats.currentMonthTxs
                   .filter(t => t.type === 'expense' && t.category === bgt.category)
                   .reduce((sum, t) => sum + Number(t.amount), 0);
 

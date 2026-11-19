@@ -5,6 +5,7 @@ import Header from './Header';
 import MobileNav from './MobileNav';
 import ToastContainer from '../ui/Toast';
 import { useAuth } from '../../context/AuthContext';
+import { MonthProvider } from '../../context/MonthContext';
 
 const Layout = () => {
   const { isAuthenticated } = useAuth();
@@ -14,7 +15,8 @@ const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row antialiased font-sans">
+    <MonthProvider>
+    <div className="app-shell min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row antialiased font-sans">
       {/* Desktop Fixed Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
@@ -31,7 +33,7 @@ const Layout = () => {
         </div>
 
         {/* Dynamic Route Content Container */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="app-main flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>
@@ -39,6 +41,7 @@ const Layout = () => {
       {/* Floating Toasts */}
       <ToastContainer />
     </div>
+    </MonthProvider>
   );
 };
 

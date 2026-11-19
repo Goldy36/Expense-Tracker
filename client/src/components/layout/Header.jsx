@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Plus, Calendar, Sparkles, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
+import { getMonthValue, useSelectedMonth } from '../../context/MonthContext';
 
 const MOTIVATIONAL_QUOTES = [
   "A budget is telling your money where to go instead of wondering where it went.",
@@ -22,18 +23,13 @@ const MOTIVATIONAL_QUOTES = [
   "Your financial habits today shape your freedom tomorrow."
 ];
 
-const getMonthValue = (date) => (
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-);
-
 const Header = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(() => getMonthValue(new Date()));
-  const currentMonthRef = useRef(getMonthValue(new Date()));
+  const { selectedMonth, setSelectedMonth } = useSelectedMonth();
 
   // Random motivational quote initialized on load
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length));
@@ -45,14 +41,6 @@ const Header = () => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000); // update every minute
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    const currentMonth = getMonthValue(currentTime);
-    if (currentMonthRef.current !== currentMonth) {
-      currentMonthRef.current = currentMonth;
-      setSelectedMonth(currentMonth);
-    }
-  }, [currentTime]);
 
   const shuffleQuote = () => {
     setQuoteIndex((prev) => (prev + 1) % MOTIVATIONAL_QUOTES.length);
@@ -84,7 +72,7 @@ const Header = () => {
   });
 
   return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-20 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <header className="app-header bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-20 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       {/* Time-Based Greeting Header & Motivational Quote */}
       <div>
         <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
