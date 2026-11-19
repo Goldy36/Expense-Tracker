@@ -30,7 +30,11 @@ const Login = () => {
       await login(email.trim().toLowerCase(), password, rememberMe);
       navigate('/dashboard');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Unable to sign in. Please check your credentials.');
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        'Unable to sign in. Please check your credentials.'
+      );
     } finally {
       setLoading(false);
     }

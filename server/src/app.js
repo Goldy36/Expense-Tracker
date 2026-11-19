@@ -12,10 +12,26 @@ dotenv.config();
 
 const app = express();
 
-// Enable CORS with client origin configuration
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+// Allow local development and the deployed Vercel client. CLIENT_URL can list
+// additional origins separated by commas for custom domains or preview apps.
+const configuredClientOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((origin) => {
+    try {
+      return new URL(origin.trim()).origin;
+    } catch {
+      return null;
+    }
+  })
+  .filter(Boolean);
+const clientOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'https://expense-tracker-client-silk-nine.vercel.app',
+  ...configuredClientOrigins,
+];
 app.use(cors({
-  origin: [clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: [...new Set(clientOrigins)],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
