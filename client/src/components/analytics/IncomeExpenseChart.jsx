@@ -138,8 +138,8 @@ const IncomeExpenseChart = ({ transactions = [], currency = '₹', selectedMonth
                 <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                <stop offset="5%" stopColor="#F97316" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#F97316" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
@@ -167,7 +167,7 @@ const IncomeExpenseChart = ({ transactions = [], currency = '₹', selectedMonth
             <Area
               type="monotone"
               dataKey="expense"
-              stroke="#6366F1"
+              stroke="#F97316"
               strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#expenseGrad)"

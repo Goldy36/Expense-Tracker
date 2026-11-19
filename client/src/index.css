@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+  --color-indigo-50: #fff7ed;
+  --color-indigo-100: #ffedd5;
+  --color-indigo-200: #fed7aa;
+  --color-indigo-300: #fdba74;
+  --color-indigo-400: #fb923c;
+  --color-indigo-500: #f97316;
+  --color-indigo-600: #ea580c;
+  --color-indigo-700: #c2410c;
+  --color-indigo-800: #9a3412;
+  --color-indigo-900: #7c2d12;
+  --color-indigo-950: #431407;
+}
+
 @layer base {
   :root {
     color-scheme: light;
@@ -68,6 +82,47 @@
 .fin-card:hover {
   border-color: rgba(203, 213, 225, 0.95) !important;
   box-shadow: 0 16px 38px rgba(15, 23, 42, 0.075), 0 3px 8px rgba(15, 23, 42, 0.035) !important;
+}
+
+.dashboard-summary > .fin-card {
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.dashboard-summary > .fin-card:nth-child(1) {
+  background-image: linear-gradient(130deg, rgba(255, 247, 237, 0.9), #fff 58%);
+  border-top: 3px solid #f97316 !important;
+}
+
+.dashboard-summary > .fin-card:nth-child(2) {
+  background-image: linear-gradient(130deg, rgba(236, 253, 245, 0.95), #fff 58%);
+  border-top: 3px solid #10b981 !important;
+}
+
+.dashboard-summary > .fin-card:nth-child(3) {
+  background-image: linear-gradient(130deg, rgba(255, 241, 242, 0.95), #fff 58%);
+  border-top: 3px solid #f43f5e !important;
+}
+
+.dashboard-summary > .fin-card:nth-child(4) {
+  background-image: linear-gradient(130deg, rgba(245, 243, 255, 0.95), #fff 58%);
+  border-top: 3px solid #8b5cf6 !important;
+}
+
+:root[data-theme='dark'] .dashboard-summary > .fin-card:nth-child(1) {
+  background-image: linear-gradient(130deg, rgba(124, 45, 18, 0.24), #111b2c 66%);
+}
+
+:root[data-theme='dark'] .dashboard-summary > .fin-card:nth-child(2) {
+  background-image: linear-gradient(130deg, rgba(6, 78, 59, 0.28), #111b2c 66%);
+}
+
+:root[data-theme='dark'] .dashboard-summary > .fin-card:nth-child(3) {
+  background-image: linear-gradient(130deg, rgba(136, 19, 55, 0.28), #111b2c 66%);
+}
+
+:root[data-theme='dark'] .dashboard-summary > .fin-card:nth-child(4) {
+  background-image: linear-gradient(130deg, rgba(91, 33, 182, 0.24), #111b2c 66%);
 }
 
 @media (max-width: 640px) {

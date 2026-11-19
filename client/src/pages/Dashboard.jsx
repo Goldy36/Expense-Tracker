@@ -103,7 +103,7 @@ const Dashboard = () => {
         <p className="text-sm font-medium text-slate-500">Showing activity for <span className="text-slate-800">{selectedMonthLabel}</span></p>
       </div>
       {/* 4 Summary Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="dashboard-summary grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Total Balance */}
         <Card hoverEffect className="relative overflow-hidden">
           <div className="flex items-center justify-between">
