@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Plus, TrendingUp, Calendar, Sparkles, RefreshCw } from 'lucide-react';
+import { Bell, Plus, TrendingUp, Calendar, Sparkles, RefreshCw, AlertTriangle, ChevronRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useExpense } from '../../context/ExpenseContext';
 import Button from '../ui/Button';
 import ThemeToggle from '../ui/ThemeToggle';
 import { getMonthValue, useSelectedMonth } from '../../context/MonthContext';
@@ -25,11 +26,67 @@ const MOTIVATIONAL_QUOTES = [
 
 const Header = () => {
   const { user } = useAuth();
+  const { transactions, budgets, settings } = useExpense();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const { selectedMonth, setSelectedMonth } = useSelectedMonth();
+  const budgetAlertsEnabled = settings.notifications?.budgetAlerts ?? false;
+  const notificationStorageKey = `finpulse-seen-budget-alerts:${user?._id || user?.email || 'account'}`;
+  const [seenBudgetAlertIds, setSeenBudgetAlertIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem(notificationStorageKey) || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const budgetAlerts = useMemo(() => {
+    if (!budgetAlertsEnabled) return [];
+
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    return budgets
+      .filter((budget) => Number(budget.month) === month && Number(budget.year) === year)
+      .map((budget) => {
+        const spent = transactions
+          .filter((transaction) => transaction.type === 'expense'
+            && transaction.category === budget.category
+            && String(transaction.date).slice(0, 7) === `${year}-${String(month + 1).padStart(2, '0')}`)
+          .reduce((total, transaction) => total + Number(transaction.amount || 0), 0);
+        const limit = Number(budget.limit) || 0;
+        const percentage = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+        return {
+          ...budget,
+          spent,
+          limit,
+          percentage,
+          remaining: limit - spent,
+          alertKey: `${budget.id || budget._id || budget.category}:${percentage >= 100 ? 'over' : 'near'}`,
+        };
+      })
+      .filter((budget) => budget.percentage >= 80)
+      .sort((a, b) => b.percentage - a.percentage);
+  }, [budgetAlertsEnabled, budgets, transactions]);
+  const unreadBudgetAlerts = budgetAlerts.filter((alert) => !seenBudgetAlertIds.includes(alert.alertKey));
+
+  const toggleNotifications = () => {
+    const opening = !showNotifications;
+    if (opening && unreadBudgetAlerts.length > 0) {
+      const seenIds = Array.from(new Set([
+        ...seenBudgetAlertIds,
+        ...unreadBudgetAlerts.map((alert) => alert.alertKey),
+      ]));
+      setSeenBudgetAlertIds(seenIds);
+      try {
+        localStorage.setItem(notificationStorageKey, JSON.stringify(seenIds));
+      } catch {
+        // Keep the read state for this session when browser storage is unavailable.
+      }
+    }
+    setShowNotifications(opening);
+  };
 
   // Random motivational quote initialized on load
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length));
@@ -114,19 +171,85 @@ const Header = () => {
 
         <div className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={toggleNotifications}
             className="relative p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all cursor-pointer shadow-2xs"
-            title="Notifications"
+            title={budgetAlerts.length ? `${budgetAlerts.length} budget alert${budgetAlerts.length === 1 ? '' : 's'}` : 'Notifications'}
+            aria-label={budgetAlerts.length ? `Notifications, ${budgetAlerts.length} budget alert${budgetAlerts.length === 1 ? '' : 's'}` : 'Notifications'}
+            aria-expanded={showNotifications}
           >
             <Bell className="w-4.5 h-4.5" />
+            {unreadBudgetAlerts.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-rose-500 px-1 text-[10px] font-bold text-white">
+                {unreadBudgetAlerts.length}
+              </span>
+            )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 p-4 animate-fade-in">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[min(70vh,440px)] overflow-y-auto bg-white rounded-2xl border border-slate-200 shadow-xl z-50 p-4 animate-fade-in">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                 <h4 className="text-sm font-semibold text-slate-900">Notifications</h4>
+                {budgetAlerts.length > 0 && (
+                  <span className="rounded-full bg-orange-50 px-2 py-1 text-[10px] font-bold text-orange-700">
+                    Budget alerts
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-slate-500">No new notifications.</p>
+              {budgetAlerts.length > 0 ? (
+                <div className="space-y-2">
+                  {budgetAlerts.map((alert) => {
+                    const isOverBudget = alert.remaining < 0;
+                    const Icon = AlertTriangle;
+                    return (
+                      <button
+                        key={alert.id || `${alert.category}-${alert.month}-${alert.year}`}
+                        type="button"
+                        onClick={() => {
+                          setShowNotifications(false);
+                          navigate('/budgets');
+                        }}
+                        className="notification-alert flex w-full items-start gap-3 rounded-xl border border-orange-100 bg-orange-50/70 p-3 text-left transition-colors hover:bg-orange-50"
+                      >
+                        <span className="mt-0.5 rounded-lg bg-white p-2 text-orange-600 shadow-sm">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-xs font-bold text-slate-900">
+                            {alert.category} budget {isOverBudget ? 'exceeded' : 'near limit'}
+                          </span>
+                          <span className="mt-1 block text-[11px] leading-relaxed text-slate-600">
+                            Spent {settings.currency || '₹'}{alert.spent.toLocaleString()} of {settings.currency || '₹'}{alert.limit.toLocaleString()} ({alert.percentage}%).
+                            {isOverBudget
+                              ? ` Over by ${settings.currency || '₹'}${Math.abs(alert.remaining).toLocaleString()}.`
+                              : ` ${settings.currency || '₹'}${alert.remaining.toLocaleString()} remaining.`}
+                          </span>
+                        </span>
+                        <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-slate-400" />
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-2">
+                  <p className="text-xs text-slate-500">
+                    {budgetAlertsEnabled
+                      ? 'You’re all caught up. Budget alerts appear when spending reaches 80%.'
+                      : 'Budget alerts are turned off.'}
+                  </p>
+                  {!budgetAlertsEnabled && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNotifications(false);
+                        navigate('/settings');
+                      }}
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-orange-700 hover:text-orange-800"
+                    >
+                      Enable alerts in Settings <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
